@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { createClient } from '@supabase/supabase-js';
 import crypto from "crypto";
-import dotenv from "dotenv";
+
 
 dotenv.config();
 const app = express();
@@ -261,3 +261,4 @@ app.post("/create-cash-payment", async (req, res) => {
 });
 
 app.listen(3000, () => console.log("Server running on http://localhost:3000"));
+

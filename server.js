@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { createClient } from '@supabase/supabase-js';
 import crypto from "crypto";
+import dotenv from "dotenv";
 
 dotenv.config();
 const app = express();
@@ -15,15 +16,15 @@ app.use(cors());
 // ✅ Parse JSON
 app.use(express.json());
 
-const SUPABASE_URL = "https://kegjyekbrxagrhidvyse.supabase.co"; // replace with your project URL
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlZ2p5ZWticnhhZ3JoaWR2eXNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgxOTYzOTUsImV4cCI6MjA3Mzc3MjM5NX0.Lf_Jz-Q8GUM4XChuNJOJXffA_cGNA2vkgZ-41d08eL8 "; // replace with your anon/public key
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const PAYMOB_API_KEY = "ZXlKaGJHY2lPaUpJVXpVeE1pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmpiR0Z6Y3lJNklrMWxjbU5vWVc1MElpd2ljSEp2Wm1sc1pWOXdheUk2TVRBd05qTTNNQ3dpYm1GdFpTSTZJakUzTlRneE5ESXlOVGN1TVRZNU1UYzNJbjAuMHQ4NnM4Q1FuT0pjUUZ4VDZXN0ZjVFdKeEUwZGZ0RW54X1Nyem1hUXJjelhuMFBSQUo5UzJKSkpDSWNhZUFKRVBiNmRxTm94a1A0bTlVUEg0NjdENXc="; // replace with real API key
-const INTEGRATION_ID_ONLINE = "4876720";      // your integration id
-const INTEGRATION_ID_CASH = "5301982";      // your integration id
-const IFRAME_ID = "881382";            // your iframe id
+const PAYMOB_API_KEY = process.env.PAYMOB_API_KEY;
+const PAYMOB_HMAC_SECRET = process.env.PAYMOB_HMAC_SECRET;
+const INTEGRATION_ID_ONLINE = process.env.INTEGRATION_ID_ONLINE;
+const IFRAME_ID = process.env.IFRAME_ID;
 // ONLINE PAYMENT
 app.post("/create-online-payment", async (req, res) => {
   try {
@@ -154,7 +155,7 @@ app.post("/paymob-callback", express.json(), (req, res) => {
 
     // 3. Generate HMAC using your Paymob HMAC secret
     const generatedHmac = crypto
-      .createHmac("sha512", "278EEE2DDFE0DAB6EBEA2E261F15AFFC")
+      .createHmac("sha512", PAYMOB_HMAC_SECRET)
       .update(concatenated)
       .digest("hex");
 
@@ -165,6 +166,12 @@ app.post("/paymob-callback", express.json(), (req, res) => {
       console.error("Invalid HMAC! Possible spoofed request");
       return res.status(400).send("Invalid HMAC");
     } 
+
+    const calculatedAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    if (calculatedAmount !== amount) {
+      return res.status(400).json({ error: "Invalid order amount" });
+    }
+
 
     // 5. Handle success/failure
     if (data.success === "true") {
@@ -240,18 +247,17 @@ app.post("/create-cash-payment", async (req, res) => {
       return res.status(500).json({ success: false, error: "Failed to save order" });
     }
 
+    const calculatedAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    if (calculatedAmount !== amount) {
+      return res.status(400).json({ error: "Invalid order amount" });
+    }
+
+
     res.json({ success: true, data });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: "Cash payment failed" });
   }
 });
-
-
-
-
-
-
-
 
 app.listen(3000, () => console.log("Server running on http://localhost:3000"));

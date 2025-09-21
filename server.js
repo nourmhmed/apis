@@ -6,7 +6,6 @@ import cors from "cors";
 import { createClient } from '@supabase/supabase-js';
 import crypto from "crypto";
 
-
 dotenv.config();
 const app = express();
 
@@ -167,10 +166,6 @@ app.post("/paymob-callback", express.json(), (req, res) => {
       return res.status(400).send("Invalid HMAC");
     } 
 
-    const calculatedAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    if (calculatedAmount !== amount) {
-      return res.status(400).json({ error: "Invalid order amount" });
-    }
 
 
     // 5. Handle success/failure
@@ -247,11 +242,6 @@ app.post("/create-cash-payment", async (req, res) => {
       return res.status(500).json({ success: false, error: "Failed to save order" });
     }
 
-    const calculatedAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    if (calculatedAmount !== amount) {
-      return res.status(400).json({ error: "Invalid order amount" });
-    }
-
 
     res.json({ success: true, data });
   } catch (err) {
@@ -261,4 +251,3 @@ app.post("/create-cash-payment", async (req, res) => {
 });
 
 app.listen(3000, () => console.log("Server running on http://localhost:3000"));
-

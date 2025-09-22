@@ -186,6 +186,14 @@ app.post("/paymob-callback", express.json(), (req, res) => {
   }
 });
 
+app.post("/paymob/callback", (req, res) => {
+  console.log("🔔 Paymob Callback Received:", req.body);
+
+  // Respond to Paymob with 200 so they stop retrying
+  res.sendStatus(200);
+});
+
+
 app.post("/create-cash-payment", async (req, res) => {
   try {
     const {
@@ -211,7 +219,7 @@ app.post("/create-cash-payment", async (req, res) => {
       .insert([
         {
           customer_name: firstName + " " + lastName,
-          address: `${street}, Building: ${building}, Floor: ${floor}, Apartment: ${apartment}, ${city}, ${country}`,
+          address: `Street: ${street}, Building: ${building}, Floor: ${floor}, Apartment: ${apartment}, ${city}, ${country}`,
           phone,
           total: amount,
           payment_method: "COD",
@@ -221,9 +229,9 @@ app.post("/create-cash-payment", async (req, res) => {
           items: JSON.stringify(
             items.map(item => ({
               name: item.name,
-              price: item.price,
+              price: item.amount_cents * 100,
               quantity: item.quantity,
-              amount_cents: item.price * 100,
+              amount_cents: item.amount_cents * 100,
               flavors: item.flavors
                 ? item.flavors.map(f => ({
                     flavor: f.flavor.trim(),

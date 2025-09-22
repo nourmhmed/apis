@@ -96,6 +96,7 @@ app.post("/create-online-payment", async (req, res) => {
       },
       currency: "EGP",
       integration_id: INTEGRATION_ID_ONLINE,
+      redirection_url: "https://nourmhmed.github.io/www/thankyou.html"
     });
 
     const paymentKey = paymentKeyRes.data.token;
